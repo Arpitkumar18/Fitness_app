@@ -80,12 +80,19 @@ st.markdown("""
 
 @st.cache_resource
 def load_data():
-    df         = pickle.load(open("gym_data.pkl","rb"))
-    similarity = pickle.load(open("similarity.pkl","rb"))
-    model      = pickle.load(open("difficulty_model.pkl","rb"))
-    tfidf      = pickle.load(open("tfidf.pkl","rb"))
-    le         = pickle.load(open("label_encoder.pkl","rb"))
-    return df,similarity,model,tfidf,le
+    from sklearn.metrics.pairwise import cosine_similarity
+
+    df    = pickle.load(open("gym_data.pkl",         "rb"))
+    tfidf = pickle.load(open("tfidf.pkl",            "rb"))
+    model = pickle.load(open("difficulty_model.pkl", "rb"))
+    le    = pickle.load(open("label_encoder.pkl",    "rb"))
+
+    # Recompute similarity on startup (cached — runs only once)
+    corpus     = df["Type"].astype(str) + " " + df["BodyPart"].astype(str) + " " + df["Equipment"].astype(str)
+    matrix     = tfidf.transform(corpus)
+    similarity = cosine_similarity(matrix)
+
+    return df, similarity, model, tfidf, le
 
 df,similarity,model,tfidf,le = load_data()
 
